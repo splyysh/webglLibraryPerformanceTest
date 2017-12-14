@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html" charset="utf-8"/>
+    <title>Babylon - Getting Started</title>
+    <!-- link to the last version of babylon -->
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <style>
+html, body {
+overflow: hidden;
+width : 100%;
+height : 100%;
+margin : 0;
+padding : 0;
+    }
+ 
+#renderCanvas {
+width : 100%;
+height : 100%;
+touch-action: none;
+    }
+</style>
+</head>
+<body>
+    <canvas id="renderCanvas"></canvas>
+ 
+    <script>
+		var nboxes = 1;
+		var time = 0;
+		var renders = 0;
+		var boxes = []
+
+		window.addEventListener('DOMContentLoaded', function()
+		{
+			var canvas = document.getElementById('renderCanvas');
+			var engine = new BABYLON.Engine(canvas, true);
+			var scene = new BABYLON.Scene(engine);
+			var camera = new BABYLON.FreeCamera('camera', new BABYLON.Vector3(20,20,100), scene);
+	 
+			// target the camera to scene origin
+			camera.setTarget(BABYLON.Vector3.Zero());
+	 
+			// attach the camera to the canvas
+			camera.attachControl(canvas, false);
+	 
+			// create a basic light, aiming 0,1,0 - meaning, to the sky
+			var light = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0,1,0), scene);
+
+			function addBoxes(rows, columns, depths)
+			{
+				for(var row = 0; row<rows; row++){
+					for(var column = 0; column<columns; column++)
+					{
+						for(var depth = 0; depth<depths; depth++)
+						{
+							var box = BABYLON.MeshBuilder.CreateBox('box', 1, scene);		 
+							box.position.x = row*2;
+							box.position.y = column*2;
+							box.position.z = depth*2;
+							
+							boxes.push(box);
+						}
+					}
+				}
+			};
+			function removeBoxes()
+			{
+				for(var i = 0; i<boxes.length;i++){
+				boxes[i].dispose();
+				}
+				boxes = [];
+			};
+			//initial boxes
+			addBoxes(nboxes,nboxes,nboxes);
+			// create a built-in "ground" shape;
+			var ground = BABYLON.Mesh.CreateGround('ground1', {height:6, width:6, subdivisions: 2}, scene);
+
+			   
+			
+			var renderLoop = function() {
+				//average render time from 100 rendered frames and add more cubes and restart timer
+				if(renders >= 100)
+				{
+					timeItTook = (new Date().getTime() - time)/100;
+					console.log("It took " + timeItTook+"ms to render "+nboxes+"x"+nboxes+"x"+nboxes+" cubes.\nThe FPS was "+1000/timeItTook);
+					renders=0;
+					nboxes+=1;
+					removeBoxes();
+					addBoxes(nboxes,nboxes,nboxes);
+					time = new Date().getTime();
+					renders=0;
+				}
+				scene.render();
+				//rotate cubes
+				for(var i =0; i<boxes.length; i++)
+				{
+					boxes[i].rotation.y = boxes[i].rotation.y + 0.01;
+					boxes[i].rotation.x = boxes[i].rotation.x + 0.01;
+				}
+				renders +=1;
+			};
+			//start the timer for the first 100 frames
+			time = new Date().getTime();
+			//start animation
+			engine.runRenderLoop(renderLoop);
+	 
+		});
+    </script>
+</html>
+</body>
